@@ -15,7 +15,7 @@ import theano
 import numpy as np
 
 GOOGLENET_PATH = get_dataset_dir("caffe/bvlc_googlenet")
-
+GOOGLENET_PLACES_PATH = get_dataset_dir("caffe/bvlc_googlenet_places")
 
 def fetch_googlenet_protobuffer_file(caffemodel_file=None):
     """Checks for existence of caffemodel protobuffer.
@@ -43,19 +43,25 @@ def fetch_googlenet_protobuffer_file(caffemodel_file=None):
         caffemodel_file = default_filename
         if not os.path.exists(GOOGLENET_PATH):
             os.makedirs(GOOGLENET_PATH)
-
+    
     url = "https://dl.dropboxusercontent.com/u/15378192/"
     url += "bvlc_googlenet.caffemodel"
     download(url, caffemodel_file, progress_update_percentage=1)
     return caffemodel_file
 
 
-def fetch_googlenet_architecture(caffemodel_parsed=None,
+def fetch_googlenet_architecture(which='imagenet',
+                                 caffemodel_parsed=None,
                                  caffemodel_protobuffer=None):
     """Fetch a pickled version of the caffe model, represented as list of
     dictionaries."""
-
-    default_filename = os.path.join(GOOGLENET_PATH, 'bvlc_googlenet.pickle')
+    import pdb; pdb.set_trace()
+    if which == 'imagenet':
+        default_filename = os.path.join(GOOGLENET_PATH, 'bvlc_googlenet.pickle')
+    elif which == 'places':
+        default_filename = os.path.join(GOOGLENET_PATH, 'bvlc_googlenet_places.pickle')
+    else:
+        raise NotImplementedError()
     if caffemodel_parsed is not None:
         if os.path.exists(caffemodel_parsed):
             return joblib.load(caffemodel_parsed)
@@ -70,9 +76,12 @@ def fetch_googlenet_architecture(caffemodel_parsed=None,
             return joblib.load(default_filename)
 
     # We didn't find the file: let's create it by parsing the protobuffer
-    protobuf_file = fetch_googlenet_protobuffer_file(caffemodel_protobuffer)
+    if which == 'imagenet':
+        protobuf_file = fetch_googlenet_protobuffer_file(caffemodel_protobuffer)
+    else:
+        protobuf_file = '/data/lisatmp3/yaoli/datasets/Places/googlenet_places205/googlelet_places205_train_iter_2400000.caffemodel'
     model = _parse_caffe_model(protobuf_file)
-
+    import pdb; pdb.set_trace()
     if caffemodel_parsed is not None:
         joblib.dump(model, caffemodel_parsed)
     else:
@@ -81,10 +90,9 @@ def fetch_googlenet_architecture(caffemodel_parsed=None,
     return model
 
 
-def create_theano_expressions(model=None, verbose=0):
-
+def create_theano_expressions(model=None, which='imagenet', verbose=0):
     if model is None:
-        model = fetch_googlenet_architecture()
+        model = fetch_googlenet_architecture(which)
 
     layers, blobs, inputs = parse_caffe_model(model, verbose=verbose)
     data_input = inputs['data']
@@ -99,7 +107,7 @@ def _get_fprop(output_layers=('loss3/loss3',), model=None, verbose=0):
     expressions, input_data = create_theano_expressions(model,
                                                         verbose=verbose)
     to_compile = [expressions[expr] for expr in output_layers]
-
+    print 'compile theano function for GoogleNet'
     return theano.function([input_data], to_compile)
 
 
@@ -209,12 +217,13 @@ class GoogLeNetClassifier(BaseEstimator):
         The coordinate boundaries of the cropping box used.
 
     """
+    
     min_size = (224, 224)
     layer_names = get_googlenet_layer_names()
 
     def __init__(self, top_n=5, large_network=False, output_strings=True,
                  transpose_order=(0, 3, 1, 2)):
-
+        print 'build GoogleNet classifier'
         self.top_n = top_n
         self.large_network = large_network
         self.output_strings = output_strings
