@@ -221,6 +221,7 @@ def parse_caffe_model(caffe_model, which='googlenet', float_dtype='float32', ver
     layers = OrderedDict()
     inputs = OrderedDict()
     blobs = OrderedDict()
+    params = OrderedDict()
     
     for i, layer in enumerate(parsed_caffe_model):
         layer_type = layer['type']
@@ -281,6 +282,10 @@ def parse_caffe_model(caffe_model, which='googlenet', float_dtype='float32', ver
             #                                     ::subsample[1]]
 
             blobs[top_blobs[0]] = expression
+
+            params[layer_name + '_conv_W'] = convolution.convolution_filter_
+            params[layer_name + '_conv_b'] = convolution.biases_
+            
         elif layer_type == "RELU":
             # RELU layers take input from bottom_blobs, set everything
             # negative to zero and write the result to top_blobs
@@ -365,15 +370,21 @@ def parse_caffe_model(caffe_model, which='googlenet', float_dtype='float32', ver
                     m_,t_,x_,y_ = fully_connected_input.shape
                     fully_connected_input = fully_connected_input.reshape((m_, t_*x_*y_))
                 fc_layer = Feedforward(weights.squeeze().T, biases, activation=None)
+                params[layer_name + '_fc_W'] = fc_layer.weights
+                if fc_layer.biases is not None:
+                    params[layer_name + '_fc_b'] = fc_layer.biases
             else:
                 fc_layer = Convolution(weights.transpose((2, 3, 0, 1)), biases,
                                    activation=None)
+                params[layer_name + '_conv_W'] = convolution.convolution_filter_
+                params[layer_name + '_conv_b'] = convolution.biases_
+                
             fc_layer._build_expression(fully_connected_input)
             layers[layer_name] = fc_layer
             blobs[top_blobs[0]] = fc_layer.expression_
         else:
             raise ValueError('layer type %s is not known to sklearn-theano'
                              % layer_type)
-    return layers, blobs, inputs
+    return layers, blobs, inputs, params
 
 

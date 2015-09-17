@@ -55,7 +55,6 @@ def fetch_googlenet_architecture(which='imagenet',
                                  caffemodel_protobuffer=None):
     """Fetch a pickled version of the caffe model, represented as list of
     dictionaries."""
-    import pdb; pdb.set_trace()
     if which == 'imagenet':
         default_filename = os.path.join(GOOGLENET_PATH, 'bvlc_googlenet.pickle')
     elif which == 'places':
@@ -94,9 +93,9 @@ def create_theano_expressions(model=None, which='imagenet', verbose=0):
     if model is None:
         model = fetch_googlenet_architecture(which)
 
-    layers, blobs, inputs = parse_caffe_model(model, verbose=verbose)
+    layers, blobs, inputs, params = parse_caffe_model(model, verbose=verbose)
     data_input = inputs['data']
-    return blobs, data_input
+    return blobs, data_input, params
 
 
 def _get_fprop(output_layers=('loss3/loss3',), model=None, verbose=0):
