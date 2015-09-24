@@ -464,7 +464,33 @@ class Relu(object):
         else:
             self.input_ = input_tensor
         self.expression_ = T.maximum(self.input_, 0)
+        
 
+class Linear(object):
+    def __init__(self, input_type=T.tensor4):
+        self.input_type = input_type
+
+        self._build_expression()
+
+    def _build_expression(self, input_tensor=None):
+        if input_tensor is None:
+            self.input_ = self.input_type()
+        else:
+            self.input_ = input_tensor
+        self.expression_ = self.input_
+        
+class Relu_Thresholding(object):
+    def __init__(self, input_type=T.tensor4):
+        self.input_type = input_type
+
+        self._build_expression()
+
+    def _build_expression(self, input_tensor=None):
+        if input_tensor is None:
+            self.input_ = self.input_type()
+        else:
+            self.input_ = input_tensor
+        self.expression_ = T.switch(T.ge(self.input_, 0), 1., 0.)
 
 class LRN(object):
     def __init__(self, normalization_size,

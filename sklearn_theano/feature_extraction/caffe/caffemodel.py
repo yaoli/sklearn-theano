@@ -206,7 +206,8 @@ def _parse_caffe_model(caffe_model, which):
     return parsed
 
 
-from sklearn_theano.base import (Convolution, Relu, MaxPool, FancyMaxPool,
+from sklearn_theano.base import (Convolution, Relu, Relu_Thresholding,
+                                 MaxPool, FancyMaxPool, Linear,
                                  LRN, Feedforward, ZeroPad,
                                  CaffePool)
 
@@ -222,7 +223,7 @@ def parse_caffe_model(caffe_model, which='googlenet', float_dtype='float32', ver
     inputs = OrderedDict()
     blobs = OrderedDict()
     params = OrderedDict()
-    
+
     for i, layer in enumerate(parsed_caffe_model):
         layer_type = layer['type']
         layer_name = layer['name']
