@@ -79,6 +79,7 @@ def _compile_caffe_protobuf(caffe_proto=None,
 
 def _get_caffe_pb2():
     from ...models.bvlc_googlenet import caffe_pb2
+    #from caffe.proto import caffe_pb2
     return caffe_pb2
 
 
@@ -163,7 +164,6 @@ def _parse_caffe_model(caffe_model, which):
     layer_types = dict(_layer_types)
     for v, k in _layer_types:
         layer_types[k] = v
-    
     if not hasattr(caffe_model, "layers"):
         # Consider it a filename
         caffe_model = _open_caffe_model(caffe_model)
@@ -322,6 +322,8 @@ def parse_caffe_model(caffe_model, which='googlenet', float_dtype='float32', ver
             pooling._build_expression(pooling_input)
             layers[layer_name] = pooling
             blobs[top_blobs[0]] = pooling.expression_
+            print (layer_name, 'kernel_size', kernel_size, 'stride', stride,
+              'pad', pad)
         elif layer_type == "DROPOUT":
             # DROPOUT may figure in some networks, but it is only relevant
             # at the learning stage, not at the prediction stage.

@@ -398,7 +398,7 @@ class CaffePool(object):
         # supposing here that self.pool_shape is a tuple. Should check
         pool_shape = T.constant(self.pool_shape)
         # stride hopefully a tuple, too
-        pool_stride = T.constant(self.pool_stride, dtype='float64')
+        pool_stride = T.constant(self.pool_stride, dtype='float32')
         float_shape = (self.input_.shape[2:4] + 2 * pad
                        - pool_shape) / pool_stride + 1
         output_shape = T.cast(T.ceil(float_shape), dtype='int64')
