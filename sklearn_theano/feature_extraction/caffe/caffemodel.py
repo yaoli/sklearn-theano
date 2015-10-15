@@ -212,7 +212,8 @@ from sklearn_theano.base import (Convolution, Relu, Relu_Thresholding,
                                  CaffePool)
 
 
-def parse_caffe_model(caffe_model, which='googlenet', float_dtype='float32', verbose=0):
+def parse_caffe_model(caffe_model, which='googlenet',
+                      float_dtype='float32', verbose=0, x=None):
     if isinstance(caffe_model, str) or not isinstance(caffe_model, list):
         parsed_caffe_model = _parse_caffe_model(caffe_model, which)
     else:
@@ -241,7 +242,12 @@ def parse_caffe_model(caffe_model, which='googlenet', float_dtype='float32', ver
                     blobs['label'] = T.ivector()
                     inputs['label'] = blobs['label']
                 else:
-                    blobs[data_blob_name] = T.tensor4(dtype=float_dtype)
+                    if x is not None:
+                        assert x.ndim == 4
+                        assert x.dtype == 'float32'
+                    else:
+                        x = T.tensor4(dtype=float_dtype)
+                    blobs[data_blob_name] = x
                     blobs[data_blob_name].tag.test_value = numpy.random.uniform(size=(10, 3, 224, 224)).astype('float32')
                     inputs[data_blob_name] = blobs[data_blob_name]
         elif layer_type == 'CONVOLUTION':

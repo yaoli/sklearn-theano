@@ -80,7 +80,7 @@ def fetch_googlenet_architecture(which='imagenet',
     else:
         protobuf_file = '/data/lisatmp3/yaoli/datasets/Places/googlenet_places205/googlelet_places205_train_iter_2400000.caffemodel'
     model = _parse_caffe_model(protobuf_file)
-    import pdb; pdb.set_trace()
+    
     if caffemodel_parsed is not None:
         joblib.dump(model, caffemodel_parsed)
     else:
